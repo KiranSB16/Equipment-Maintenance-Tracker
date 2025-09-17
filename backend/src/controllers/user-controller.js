@@ -2,6 +2,7 @@ import User from '../models/user-model.js'
 import bcryptjs from 'bcryptjs'
 import {validationResult} from 'express-validator'
 export const userCltr = {}
+import jwt from "jsonwebtoken"
 
 userCltr.register = async (req , res) => {
     const errors = validationResult(req)

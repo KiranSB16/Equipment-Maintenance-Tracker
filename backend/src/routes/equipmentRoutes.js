@@ -1,7 +1,7 @@
 import express from "express"
 import { checkSchema } from "express-validator"
-import equipmentCltr from "../controller/equipment-controller.js"
-import { equipmentValidationSchema } from "../validator/equipment-validation-schema.js"
+import equipmentCltr from "../controllers/equipment-controller.js"
+import {equipmentValidationSchema} from "../validators/equipment-validation-schema.js"
 import AuthenticateUser from "../middleware/authentication.js"
 import AuthorizeUser from "../middleware/authorization.js"
 

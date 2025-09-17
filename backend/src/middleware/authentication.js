@@ -1,17 +1,21 @@
 import jwt from "jsonwebtoken"
-export default function AuthenticateUser(req , res , next) {
+import User from "../models/user-model.js"
+
+export default async function AuthenticateUser(req, res, next) {
     const token = req.headers['authorization']
     if(!token){
-        res.status(401).json({errors : "token is required"})
+        return res.status(401).json({errors: "token is required"})
     }
-
     try{
-        const tokenData = jwt.verify(token , process.env.JWT_SECRET)
+        const tokenData = jwt.verify(token, process.env.JWT_SECRET)
         req.userId = tokenData.userId
+        const user = await User.findById(tokenData.userId)
+        if(!user) {
+            return res.status(401).json({errors: "Invalid token"})
+        }
+        req.currentUser = user
         next()
-
     } catch(err){
-        return res.status(401).json({errors : err.message})
-
+        return res.status(401).json({errors: err.message})
     }
 }

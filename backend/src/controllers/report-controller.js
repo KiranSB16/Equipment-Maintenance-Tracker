@@ -9,19 +9,22 @@ const reportCltr = {}
 reportCltr.equipmentStatus = async (req, res) => {
   try {
     const equipments = await Equipment.find().select("name type status lastMaintenanceDate")
+    
     const rows = equipments.map(eq => [
-      eq.name,
-      eq.type,
-      eq.status,
-      eq.lastMaintenanceDate?.toDateString() || "N/A"
+      eq.name || "N/A",
+      eq.type || "N/A",
+      eq.status || "N/A",
+      eq.lastMaintenanceDate ? eq.lastMaintenanceDate.toDateString() : "N/A"
     ])
+    
     generatePDF({
       title: "Equipment Status Report",
-      columns: ["Name", "Type", "Status", "Last Maintenance"],
+      columns: ["Equipment Name", "Type", "Status", "Last Maintenance"],
       rows,
       res
     })
   } catch (err) {
+    console.error("Equipment report error:", err)
     return res.status(500).json({ message: "Error generating equipment report" })
   }
 }
@@ -34,51 +37,88 @@ reportCltr.workOrderSummary = async (req, res) => {
 
     if (status) filter.status = status
     if (startDate && endDate) {
-      filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) }
+      filter.createdAt = { 
+        $gte: new Date(startDate), 
+        $lte: new Date(endDate) 
+      }
     }
 
     const workOrders = await WorkOrder.find(filter)
       .populate("equipment", "name")
-      .populate("assignedTo", "username role")
+      .populate("assignedTo", "name role email")
+      .sort({ createdAt: -1 }) // Most recent first
 
     const rows = workOrders.map(wo => [
-      wo.title,
-      wo.equipment?.name || "N/A",
-      wo.status,
-      wo.assignedTo?.username || "Unassigned",
-      wo.createdAt.toDateString()
+      wo.title || "N/A",
+      wo.equipment?.name || "Unassigned",
+      wo.status || "N/A",
+      wo.assignedTo?.name || "Unassigned",
+      wo.createdAt ? wo.createdAt.toDateString() : "N/A"
     ])
 
     generatePDF({
-      title: "Work Order Summary",
-      columns: ["Title", "Equipment", "Status", "Assigned To", "Created At"],
+      title: "Work Order Summary Report",
+      columns: ["Work Order Title", "Equipment", "Status", "Assigned To", "Created Date"],
       rows,
       res
     })
   } catch (err) {
+    console.error("Work order report error:", err)
     return res.status(500).json({ message: "Error generating work order report" })
   }
 }
 
-// Technician Workload
+// Technician Workload (Fixed version with email included)
 reportCltr.technicianWorkload = async (req, res) => {
   try {
-    const technicians = await User.find({ role: "Technician" })
-    const workload = await Promise.all(
+    // Get all technicians with their details
+    const technicians = await User.find({ 
+      role: "Technician" 
+    }).select("name email role")
+
+    // Calculate workload for each technician
+    const workloadData = await Promise.all(
       technicians.map(async tech => {
-        const count = await WorkOrder.countDocuments({ assignedTo: tech._id, status: { $ne: "Closed" } })
-        return [tech.username, count]
+        const inProgressCount = await WorkOrder.countDocuments({ 
+          assignedTo: tech._id, 
+          status: "In Progress" 
+        })
+        
+        const completedCount = await WorkOrder.countDocuments({ 
+          assignedTo: tech._id, 
+          status: "Completed" 
+        })
+
+        return {
+          name: tech.name || "Unknown",
+          email: tech.email || "No email",
+          inProgressOrders: inProgressCount,
+          completedOrders: completedCount,
+          totalOrders: inProgressCount + completedCount
+        }
       })
     )
 
+    // Sort by workload (open orders) descending
+    workloadData.sort((a, b) => b.inProgressOrders - a.inProgressOrders)
+
+    const rows = workloadData.map(tech => [
+      tech.name,
+      tech.email,
+      tech.inProgressOrders.toString(),
+      tech.completedOrders.toString(),
+      tech.totalOrders.toString()
+    ])
+
     generatePDF({
-      title: "Technician Workload",
-      columns: ["Technician", "Open Work Orders"],
-      rows: workload,
+      title: "Technician Workload Report",
+      columns: ["Technician Name", "Email", "InProgress Orders", "Completed Orders", "Total Orders"],
+      rows,
       res
     })
   } catch (err) {
-    return res.status(500).json({ message: "Error generating technician report" })
+    console.error("Technician workload report error:", err)
+    return res.status(500).json({ message: "Error generating technician workload report" })
   }
 }
 

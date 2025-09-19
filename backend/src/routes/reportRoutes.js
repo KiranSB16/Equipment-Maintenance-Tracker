@@ -1,15 +1,29 @@
-import express from "express"
-import reportCltr from "../controllers/report-controller.js"
-import AuthenticateUser from "../middleware/authentication.js"
-import AuthorizeUser from "../middleware/authorization.js"
+import express from "express";
+import reportCltr from "../controllers/report-controller.js";
+import AuthenticateUser from "../middleware/authentication.js";
+import AuthorizeUser from "../middleware/authorization.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// Supervisor/Manager only
-router.get("/equipment-status", AuthenticateUser, AuthorizeUser(["Supervisor", "Manager"]), reportCltr.equipmentStatus)
+router.get(
+  "/equipment-status",
+  AuthenticateUser,
+  AuthorizeUser(["Manager"]),
+  reportCltr.equipmentStatus
+);
 
-router.get("/work-orders", AuthenticateUser, AuthorizeUser(["Supervisor", "Manager"]), reportCltr.workOrderSummary)
+router.get(
+  "/work-orders",
+  AuthenticateUser,
+  AuthorizeUser(["Manager"]),
+  reportCltr.workOrderSummary
+);
 
-router.get("/technician-workload", AuthenticateUser, AuthorizeUser(["Supervisor", "Manager"]), reportCltr.technicianWorkload)
+router.get(
+  "/technician-workload",
+  AuthenticateUser,
+  AuthorizeUser(["Manager"]),
+  reportCltr.technicianWorkload
+);
 
-export default router
+export default router;

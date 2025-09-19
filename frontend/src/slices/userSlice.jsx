@@ -1,27 +1,36 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../config/axios";
 
-const initialState = {
-  user: null,  
-  token: null,  
-  isAuthenticated: false,
-};
+export const fetchTechnicians = createAsyncThunk(
+  "users/fetchTechnicians",
+  async () => {
+    const res = await api.get("/users?role=Technician");
+    return res.data;
+  }
+);
 
-const authSlice = createSlice({
-  name: "auth",
-  initialState,
-  reducers: {
-    login : (state, action) => {
-      state.user = action.payload.user
-      state.token = action.payload.token
-      state.isAuthenticated = true
-    },
-    logout: (state) => {
-      state.user = null
-      state.token = null
-      state.isAuthenticated = false
-    },
+const userSlice = createSlice({
+  name: "users",
+  initialState: {
+    technicians: [],
+    loading: false,
+    error: null,
   },
-})
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTechnicians.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTechnicians.fulfilled, (state, action) => {
+        state.loading = false;
+        state.technicians = action.payload;
+      })
+      .addCase(fetchTechnicians.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
+  },
+});
 
-export const { login, logout } = authSlice.actions
-export default authSlice.reducer
+export default userSlice.reducer;

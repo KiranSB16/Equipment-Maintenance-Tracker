@@ -1,5 +1,4 @@
-import User from "../models/user-model.js"
-
+import User from "../models/user-model.js";
 export const workOrderValidationSchema = {
   title: {
     exists: { errorMessage: "title field is required" },
@@ -36,15 +35,15 @@ export const workOrderValidationSchema = {
     isMongoId: { errorMessage: "assignedTo must be a valid Mongo ID" },
     custom: {
       options: async (value) => {
-        if (!value) return true
-        const user = await User.findById(value)
+        if (!value) return true;
+        const user = await User.findById(value);
         if (!user) {
-          throw new Error("assignedTo must be a valid user")
+          throw new Error("assignedTo must be a valid user");
         }
         if (user.role !== "Technician") {
-          throw new Error("assignedTo must be a Technician")
+          throw new Error("assignedTo must be a Technician");
         }
-        return true
+        return true;
       },
     },
   },
@@ -60,13 +59,5 @@ export const workOrderValidationSchema = {
     notEmpty: { errorMessage: "dueDate cannot be empty" },
     isISO8601: { errorMessage: "dueDate must be a valid date" },
     toDate: true,
-    custom: {
-      options: (value) => {
-        if (new Date(value) < new Date()) {
-          throw new Error("dueDate cannot be in the past")
-        }
-        return true
-      },
-    },
   },
-}
+};

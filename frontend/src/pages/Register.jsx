@@ -1,20 +1,60 @@
-// pages/RegisterPage.jsx
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../slices/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  // Validation schema with Yup
   const RegisterSchema = Yup.object().shape({
     name: Yup.string().min(2, "Too Short!").required("Name is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string()
       .min(8, "Password too short")
       .required("Password is required"),
-    role: Yup.string().oneOf(["technician", "supervisor", "manager"]).required(),
+    role: Yup.string()
+      .oneOf(["Technician", "Supervisor", "Manager"])
+      .required(),
   });
+
+  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    try {
+      setStatus(null);
+
+      console.log("Submitting registration...");
+      const resultAction = await dispatch(registerUser(values));
+
+      if (registerUser.fulfilled.match(resultAction)) {
+        console.log("Registration successful!");
+        setStatus({
+          type: "success",
+          message:
+            "Registration successful! Please login with your credentials.",
+        });
+
+        setTimeout(() => {
+          navigate("/login", { replace: true });
+        }, 1500);
+      } else {
+        const errorMessage = resultAction.payload;
+        setStatus({
+          type: "error",
+          message: errorMessage || "Registration failed. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      setStatus({
+        type: "error",
+        message: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="container mt-5">
@@ -25,16 +65,12 @@ export default function Register() {
           name: "",
           email: "",
           password: "",
-          role: "technician",
+          role: "",
         }}
         validationSchema={RegisterSchema}
-        onSubmit={(values) => {
-          console.log("Register data:", values);
-          // later: call backend API
-          navigate("/");
-        }}
+        onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, status }) => (
           <Form>
             <div className="mb-2">
               <Field
@@ -79,10 +115,13 @@ export default function Register() {
             </div>
 
             <div className="mb-3">
-              <Field as="select" name="role" className="form-select">
-                <option value="technician">Technician</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="manager">Manager</option>
+              <Field as="select" name="role" className="form-control">
+                <option value="" disabled>
+                  -- Select Role --
+                </option>
+                <option value="Technician">Technician</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="Manager">Manager</option>
               </Field>
               <ErrorMessage
                 name="role"
@@ -91,12 +130,26 @@ export default function Register() {
               />
             </div>
 
+            {status && (
+              <div
+                className={`mb-3 alert ${
+                  status.type === "success" ? "alert-success" : "alert-danger"
+                }`}
+              >
+                {status.message}
+              </div>
+            )}
+
+            {error && !status && (
+              <div className="alert alert-danger mb-3">{error}</div>
+            )}
+
             <button
               type="submit"
               className="btn btn-success w-100"
-              disabled={isSubmitting}
+              disabled={loading || isSubmitting}
             >
-              Register
+              {loading ? "Creating Account..." : "Register"}
             </button>
           </Form>
         )}

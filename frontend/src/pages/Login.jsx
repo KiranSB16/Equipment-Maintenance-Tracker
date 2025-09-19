@@ -1,31 +1,42 @@
-// pages/LoginPage.jsx
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../slices/authSlice";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Login() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error, user } = useSelector((state) => state.auth);
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string().required("Password is required"),
   });
 
+  useEffect(() => {
+    if (user) {
+      if (user.role === "Technician") navigate("/technician");
+      if (user.role === "Supervisor") navigate("/supervisor");
+      if (user.role === "Manager") navigate("/manager");
+      console.log("Navigating user:", user);
+    }
+  }, [user, navigate]);
+
   return (
     <div className="container mt-5">
-      <h3>Equipment Maintenance Tracker</h3>
+      <h3>Login</h3>
 
       <Formik
         initialValues={{ email: "", password: "" }}
         validationSchema={LoginSchema}
         onSubmit={(values) => {
-          console.log("Login data:", values);
-          // later: call backend API
-          navigate("/dashboard");
+          dispatch(loginUser(values));
         }}
       >
         {({ isSubmitting }) => (
-          <Form className="mt-3">
+          <Form>
             <div className="mb-2">
               <Field
                 name="email"
@@ -54,23 +65,18 @@ export default function Login() {
               />
             </div>
 
+            {error && <div className="text-danger mb-2">{error}</div>}
+
             <button
               type="submit"
               className="btn btn-primary w-100"
-              disabled={isSubmitting}
+              disabled={loading || isSubmitting}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </Form>
         )}
       </Formik>
-
-      <p className="mt-3">
-        Don’t have an account?{" "}
-        <Link to="/register" className="text-primary">
-          Register here
-        </Link>
-      </p>
     </div>
   );
 }

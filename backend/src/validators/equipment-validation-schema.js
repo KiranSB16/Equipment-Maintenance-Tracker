@@ -69,10 +69,10 @@ export const equipmentValidationSchema = {
         ) {
           throw new Error(
             "nextMaintenanceDate must be after lastMaintenanceDate"
-          )
+          );
         }
-        return true
+        return true;
       },
     },
   },
-}
+};

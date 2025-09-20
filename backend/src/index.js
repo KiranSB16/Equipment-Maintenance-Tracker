@@ -8,20 +8,12 @@ configureDb();
 const app = express();
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:5173", // frontend dev
-  "https://equipment-maintenance-tracker.vercel.app", // your actual frontend URL
-  "https://equipment-maintenance-tracker-srno-pcz7j0261-kiran-sbs-projects.vercel.app", // backend URL (just in case)
-  process.env.FRONTEND_URL,
-];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "*", // Only for testing!
+  credentials: false, // Must be false when using wildcard
+}));
+
 
 const port = process.env.PORT;
 

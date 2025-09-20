@@ -10,8 +10,7 @@ app.use(express.json());
 
 
 app.use(cors({
-  origin: "*", // Only for testing!
-  credentials: false, // Must be false when using wildcard
+  origin: true, // Only for testing!
 }));
 
 

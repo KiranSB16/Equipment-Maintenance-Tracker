@@ -10,7 +10,8 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173", // frontend dev
-  process.env.FRONTEND_URL, // deployed frontend
+  process.env.FRONTEND_URL,
+  /^https:\/\/equipment-maintenance-tracker.*\.vercel\.app$/, // deployed frontend
 ];
 
 app.use(

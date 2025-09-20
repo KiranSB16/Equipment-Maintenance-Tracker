@@ -9,21 +9,15 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-  "http://localhost:5173", // frontend dev
+  "http://localhost:5173",
+  "https://equipment-maintenance-tracker.vercel.app",
+  "https://equipment-maintenance-tracker-9am8wj600-kiran-sbs-projects.vercel.app", // Add the exact URL
   process.env.FRONTEND_URL,
-  /^https:\/\/equipment-maintenance-tracker.*\.vercel\.app$/, // deployed frontend
 ];
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // allow requests with no origin (like Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })

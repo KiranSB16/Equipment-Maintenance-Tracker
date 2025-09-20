@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use(cors({
   origin: [
-    'https://equipment-maintenance-tracker.vercel.app/',
+    "https://equipment-maintenance-tracker.vercel.app",
     'http://localhost:5173' // for local development
   ],
   credentials:true
@@ -29,6 +29,10 @@ app.use("/api/users", userRoutes);
 app.use("/api/equipments", equipmentRoutes);
 app.use("/api/workOrders", workOrderRoutes);
 app.use("/api/reports", reportRoutes);
+
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
 
 app.listen(port, () => {
   console.log("server is running at port", port);

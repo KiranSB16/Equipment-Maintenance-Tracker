@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use(cors({
   origin: [
-    'https://equipment-maintenance-tracker.vercel.app',
+    'https://equipment-maintenance-tracker.vercel.app/',
     'http://localhost:3000' // for local development
   ],
 }));

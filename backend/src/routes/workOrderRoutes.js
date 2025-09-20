@@ -12,15 +12,15 @@ router.get("/:id", AuthenticateUser, workOrderCltr.getWorkOrderById)
 
 router.post(
   "/",
-  checkSchema(workOrderValidationSchema),
-  AuthenticateUser,
-  AuthorizeUser(["Supervisor", "Manager"]),
+  AuthenticateUser,                       
+  AuthorizeUser(["Supervisor", "Manager"]), 
+  checkSchema(workOrderValidationSchema, ["body"]),
   workOrderCltr.createWorkOrder
 )
 
 router.put(
   "/:id",
-  checkSchema(workOrderValidationSchema),
+  checkSchema(workOrderValidationSchema, ["body"]),
   AuthenticateUser,
   AuthorizeUser(["Supervisor", "Manager"]),
   workOrderCltr.updateWorkOrder
